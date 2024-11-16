@@ -17,17 +17,12 @@ void CEEngine::insertTuple(const std::vector<int>& tuple)
     tupleIds.push_back(nextTupleId);
     nextTupleId++;
 }
+
 void CEEngine::deleteTuple(const std::vector<int>& tuple, int tupleId)
 {
     // Implement your delete tuple logic here.
-auto idIt = std::find(tupleIds.begin(), tupleIds.end(), tupleId);
-    if (idIt != tupleIds.end())
-    {
-        int index = std::distance(tupleIds.begin(), idIt);
-        tuples.erase(tuples.begin() + index);
-        tupleIds.erase(idIt);
-    }
 }
+
 int CEEngine::query(const std::vector<CompareExpression>& quals)
 {
     int matchCount = 0;
@@ -89,4 +84,3 @@ CEEngine::CEEngine(int num, DataExecuter *dataExecuter)
     // Implement your constructor here.
     this->dataExecuter = dataExecuter;
 }
-

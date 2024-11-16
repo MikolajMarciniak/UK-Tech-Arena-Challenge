@@ -6,3 +6,7 @@ CardinalityEstimation/main
 CardinalityEstimation/build/*
 CardinalityEstimation/Makefile
 CardinalityEstimation/build/CMakeFiles/CMakeOutput.log
+agorize_playground/CardinalityEstimation/build/main
+agorize_playground/CardinalityEstimation/build/CMakeFiles/CMakeOutput.log
+agorize_playground/CardinalityEstimation/build/CMakeFiles/main.dir/src/CardinalityEstimation.cpp.o
+agorize_playground/CardinalityEstimation/build/CMakeFiles/main.dir/src/CardinalityEstimation.cpp.o.d

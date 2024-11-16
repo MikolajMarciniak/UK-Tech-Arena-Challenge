@@ -1,6 +1,6 @@
 # .gitignore
 
-CardinalityEstimation/CMakeFiles/
+CardinalityEstimation/CMakeFiles/*
 CardinalityEstimation/CMakeCache.txt
 CardinalityEstimation/main
 CardinalityEstimation/build/*

@@ -1,0 +1,7 @@
+# .gitignore
+
+CardinalityEstimation/CMakeFiles/
+CardinalityEstimation/CMakeCache.txt
+CardinalityEstimation/main
+CardinalityEstimation/build
+CardinalityEstimation/Makefile

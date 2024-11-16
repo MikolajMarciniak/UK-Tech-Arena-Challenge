@@ -1,3 +1,3 @@
-/home/mikolaj/GIT/agorize_playground/agorize_playground/CardinalityEstimation/CMakeFiles/main.dir
-/home/mikolaj/GIT/agorize_playground/agorize_playground/CardinalityEstimation/CMakeFiles/edit_cache.dir
-/home/mikolaj/GIT/agorize_playground/agorize_playground/CardinalityEstimation/CMakeFiles/rebuild_cache.dir
+/Users/dolorious/Desktop/AIMA/HuaweiHackathon/UK-Tech-Arena-Challenge/agorize_playground/CardinalityEstimation/CMakeFiles/main.dir
+/Users/dolorious/Desktop/AIMA/HuaweiHackathon/UK-Tech-Arena-Challenge/agorize_playground/CardinalityEstimation/CMakeFiles/edit_cache.dir
+/Users/dolorious/Desktop/AIMA/HuaweiHackathon/UK-Tech-Arena-Challenge/agorize_playground/CardinalityEstimation/CMakeFiles/rebuild_cache.dir

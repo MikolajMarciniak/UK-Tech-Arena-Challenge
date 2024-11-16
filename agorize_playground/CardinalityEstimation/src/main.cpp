@@ -1,4 +1,4 @@
-#include <CardinalityEstimation.h>
+#include "../include/CardinalityEstimation.h"
 #include <executer/DataExecuterDemo.h>
 
 int main(int argc, char *argv[])
@@ -11,6 +11,7 @@ int main(int argc, char *argv[])
     DataExecuterDemo dataExecuter(initSize - 1, opSize);
     CEEngine ceEngine(initSize, &dataExecuter);
     Action action = dataExecuter.getNextAction();
+
 
     while (action.actionType != NONE) {
         ceEngine.prepare();

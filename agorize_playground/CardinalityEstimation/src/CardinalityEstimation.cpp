@@ -11,10 +11,12 @@ int nextTupleId = 0;
 void CEEngine::insertTuple(const std::vector<int>& tuple)
 {
     // Implement your insert tuple logic here.
+    // push_back -> vectors are useful for our task given 
+    //we are dealing with millions of rows
+    
  tuples.push_back(tuple);
     tupleIds.push_back(nextTupleId);
     nextTupleId++;
-    std::cout << "Value of a is " << tupleIds;
 }
 void CEEngine::deleteTuple(const std::vector<int>& tuple, int tupleId)
 {
@@ -30,6 +32,7 @@ auto idIt = std::find(tupleIds.begin(), tupleIds.end(), tupleId);
 int CEEngine::query(const std::vector<CompareExpression>& quals)
 {
     // Implement your query logic here.
+    
     return 0;
 }
 

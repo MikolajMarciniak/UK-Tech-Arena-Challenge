@@ -7,14 +7,14 @@
 void TimingData::update(long long duration) {
     if (duration < minTime) minTime = duration;
     if (duration > maxTime) maxTime = duration;
+    totalTime += duration;
 }
 
 // Print timing results
 void TimingData::print(const std::string& operationName) const {
-    std::cout << "Minimum time for " << operationName << ": "
-              << (minTime == std::numeric_limits<long long>::max() ? 0 : static_cast<double>(minTime) / 1e6) << " seconds" << std::endl;
-    std::cout << "Maximum time for " << operationName << ": "
-              << (maxTime == std::numeric_limits<long long>::min() ? 0 : static_cast<double>(maxTime) / 1e6) << " seconds" << std::endl;
+    std::cout << operationName << " - Min: " << static_cast<double>(minTime) / 1e6 << " seconds, "
+              << "Max: " << static_cast<double>(maxTime) / 1e6 << " seconds, "
+              << "Total: " << static_cast<double>(totalTime) / 1e6 << " seconds" << std::endl;
 }
 
 // Measure execution time

@@ -5,8 +5,8 @@
 #include "TimingUtils.h"
 
 int main(int argc, char* argv[]) {
-    int initSize = 100000;
-    int opSize = 10000;
+    int initSize = 30000000;
+    int opSize = 20000000;
     double score = 0;
     int cnt = 0;
 

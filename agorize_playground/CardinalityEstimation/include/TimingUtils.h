@@ -8,6 +8,7 @@
 struct TimingData {
     long long minTime = std::numeric_limits<long long>::max();
     long long maxTime = std::numeric_limits<long long>::min();
+    long long totalTime = 0;
 
     void update(long long duration);
 

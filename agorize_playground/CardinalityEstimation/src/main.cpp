@@ -5,8 +5,8 @@
 #include "TimingUtils.h"
 
 int main(int argc, char* argv[]) {
-    int initSize = 30000000;
-    int opSize = 20000000;
+    int initSize = 100000;
+    int opSize = 100000;
     double score = 0;
     int cnt = 0;
 
@@ -17,11 +17,16 @@ int main(int argc, char* argv[]) {
     TimingData insertTiming;
     TimingData deleteTiming;
     TimingData queryTiming;
+    TimingData prepareTiming;
 
     Action action = dataExecuter.getNextAction();
 
-    while (action.actionType != NONE) {
-        ceEngine.prepare();
+    while (action.actionType != NONE) {measureExecutionTime(
+                [&]() { ceEngine.prepare(); },
+                prepareTiming,
+                "prepare"
+            );
+        
         if (action.actionType == INSERT) {
             measureExecutionTime(
                 [&]() { ceEngine.insertTuple(action.actionTuple); },
@@ -54,6 +59,7 @@ int main(int argc, char* argv[]) {
     insertTiming.print("insert");
     deleteTiming.print("delete");
     queryTiming.print("query");
+    prepareTiming.print("prepare");
 
     std::cout << "Average Error: " << score / cnt << std::endl;
 

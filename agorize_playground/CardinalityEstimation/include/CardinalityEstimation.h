@@ -1,12 +1,12 @@
 #ifndef CARDINALITYESTIMATION_ENGINE
 #define CARDINALITYESTIMATION_ENGINE
-
 #include <executer/DataExecuter.h>
 #include <common/Expression.h>
+#include <vector>
+#include <cstdint>
 
 class CEEngine {
 public:
-
     CEEngine(int num, DataExecuter* dataExecuter);
     ~CEEngine() = default;
 
@@ -20,13 +20,13 @@ public:
 
 private:
     DataExecuter* dataExecuter;
+    int precision;  // for HyperLogLog
+    std::vector<uint8_t> registers;
+    double alpha;
 
-    int cmsWidth;
-    int cmsDepth;
-    std::vector<std::vector<int>> cmsTable;
+    void hllInsert(int value);
 
-    void cmsInsert(int value);
-    int cmsQuery(int value);
+    int hllQuery(int value);
 };
 
 #endif

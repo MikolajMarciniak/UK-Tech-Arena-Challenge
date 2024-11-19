@@ -1,39 +1,44 @@
 #include "../include/common/Root.h"
 #include "../include/CardinalityEstimation.h"
 #include <iostream>
-#include <algorithm>
-#include <unordered_map>
-#include <unordered_set>
 #include <vector>
+#include <unordered_map>
+#include <algorithm>
+#include <numeric>
 #include <cmath>
 
 // Global variables for tuples and their IDs
 std::vector<std::vector<int>> tuples;
-std::vector<int> tupleIds;
 std::unordered_map<int, int> tupleIdToIndex;
 std::vector<int> freeIndices;
 int nextTupleId = 0;
 
-// Faster hash function (optimized multiplicative hash)
-inline uint32_t fastHash(int value) {
-    return value * 0x9E3779B1;
+CEEngine::CEEngine(int numBins, DataExecuter* dataExecuter)
+    : dataExecuter(dataExecuter), numBins(numBins), minValue(0), maxValue(10000), dirty(false) {
+    histogram.resize(numBins, 0);
+    binWidth = static_cast<double>(maxValue - minValue) / numBins;
 }
 
-// Constructor
-CEEngine::CEEngine(int num, DataExecuter* dataExecuter) {
-    this->dataExecuter = dataExecuter;
-    this->precision = 13;  //(2^13 registers)
-    this->registers.resize(1 << precision, 0); // Memory usage: ~8 KB
-    this->dirty = false;
+// Helper: Get bin index for a value
+int CEEngine::getBinIndex(int value) const {
+    return static_cast<int>((value - minValue) / binWidth);
+}
 
-    // Precompute alpha for precision
-    this->alpha = (precision <= 6) 
-        ? (precision == 4 ? 0.673 : (precision == 5 ? 0.697 : 0.709)) 
-        : 0.7213 / (1.0 + 1.079 / (1 << precision));
+// Helper: Update histogram for a value
+void CEEngine::updateHistogram(int value, int delta) {
+    int binIndex = getBinIndex(value);
+    if (binIndex >= 0 && binIndex < numBins) {
+        histogram[binIndex] += delta;
+        if (histogram[binIndex] < 0) histogram[binIndex] = 0; // Prevent negative counts
+    }
 }
 
 // Insert a tuple
 void CEEngine::insertTuple(const std::vector<int>& tuple) {
+    for (int value : tuple) {
+        updateHistogram(value, 1);  // Increment histogram count
+    }
+
     if (!freeIndices.empty()) {
         int index = freeIndices.back();
         freeIndices.pop_back();
@@ -42,11 +47,6 @@ void CEEngine::insertTuple(const std::vector<int>& tuple) {
     } else {
         tuples.push_back(tuple);
         tupleIdToIndex[nextTupleId] = tuples.size() - 1;
-    }
-
-    // Batch update HLL registers for the tuple
-    for (int value : tuple) {
-        hllInsert(value);
     }
 
     nextTupleId++;
@@ -61,87 +61,58 @@ void CEEngine::deleteTuple(const std::vector<int>& tuple, int tupleId) {
     tupleIdToIndex.erase(it);
     freeIndices.push_back(index);
 
+    for (int value : tuple) {
+        updateHistogram(value, -1);  // Decrement histogram count
+    }
+
     if (!dirty && tupleIdToIndex.size() < (tuples.size() / 2)) {
         dirty = true;
     }
 }
 
-// HyperLogLog Insert
-inline void CEEngine::hllInsert(int value) {
-    uint32_t hash = fastHash(value);
-    int index = hash >> (32 - precision);
-    int zeros = __builtin_clz(hash) - (32 - precision) + 1;
-    registers[index] = std::max(registers[index], static_cast<uint8_t>(zeros));
-}
-
-// HyperLogLog Query
-int CEEngine::hllQuery(int value) {
-    static std::vector<double> precomputedPowers = [] {
-        std::vector<double> powers(256, 0.0);
-        for (int i = 0; i < 256; ++i) {
-            powers[i] = std::pow(2.0, -i);
-        }
-        return powers;
-    }();
-
-    double harmonicMean = 0;
-    for (uint8_t rank : registers) {
-        harmonicMean += precomputedPowers[rank];
-    }
-
-    double estimate = alpha * (1 << precision) * (1 << precision) / harmonicMean;
-
-
-    if (estimate <= 2.5 * (1 << precision)) {
-        int zeros = std::count(registers.begin(), registers.end(), 0);
-        if (zeros > 0) {
-            estimate = (1 << precision) * std::log(static_cast<double>(1 << precision) / zeros);
-        }
-    }
-
-    else if (estimate > (1.0 / 30.0) * std::pow(2, 32)) {
-        estimate = -std::pow(2, 32) * std::log(1.0 - estimate / std::pow(2, 32));
-    }
-
-    return static_cast<int>(estimate);
-}
-
-// Cardinality Query with Qualifiers
+// Cardinality Query
 int CEEngine::query(const std::vector<CompareExpression>& quals) {
     if (dirty) {
         prepare();
         dirty = false;
     }
 
-    if (quals.empty()) return hllQuery(0);
-
-    // Efficient query evaluation
-    int maxEstimate = 0;
-    for (const auto& qual : quals) {
-        int estimate = hllQuery(qual.value);
-        maxEstimate = std::max(maxEstimate, estimate);
-
-    
-        if (maxEstimate == tupleIdToIndex.size()) break;
+    if (quals.empty()) {
+        return std::accumulate(histogram.begin(), histogram.end(), 0);
     }
-    return maxEstimate;
+
+    int totalCount = 0;
+    for (const auto& qual : quals) {
+        for (int bin = 0; bin < numBins; ++bin) {
+            double binStart = minValue + bin * binWidth;
+            double binEnd = binStart + binWidth;
+
+            bool matches = false;
+            if (qual.compareOp == GREATER) {
+                matches = binStart > qual.value;
+            } else if (qual.compareOp == EQUAL) {
+                matches = binStart <= qual.value && binEnd > qual.value;
+            }
+
+            if (matches) {
+                totalCount += histogram[bin];
+            }
+        }
+    }
+
+    return totalCount;
 }
 
 // Prepare for Rebuild
 void CEEngine::prepare() {
     if (!dirty) return;
 
-    std::fill(registers.begin(), registers.end(), 0);
+    std::fill(histogram.begin(), histogram.end(), 0);
 
-    std::unordered_set<int> uniqueValues;
     for (const auto& tuple : tuples) {
         for (int value : tuple) {
-            uniqueValues.insert(value);
+            updateHistogram(value, 1);
         }
-    }
-
-    for (int value : uniqueValues) {
-        hllInsert(value);
     }
 
     dirty = false;

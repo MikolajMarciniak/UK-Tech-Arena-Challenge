@@ -1,20 +1,17 @@
+
+# Consider dependencies only in project.
+set(CMAKE_DEPENDS_IN_PROJECT_ONLY OFF)
+
 # The set of languages for which implicit dependencies are needed:
 set(CMAKE_DEPENDS_LANGUAGES
-  "CXX"
   )
-# The set of files for implicit dependencies of each language:
-set(CMAKE_DEPENDS_CHECK_CXX
-  "/workspaces/UK-Tech-Arena-Challenge/agorize_playground/CardinalityEstimation/src/CardinalityEstimation.cpp" "/workspaces/UK-Tech-Arena-Challenge/agorize_playground/CardinalityEstimation/build/CMakeFiles/main.dir/src/CardinalityEstimation.cpp.o"
-  "/workspaces/UK-Tech-Arena-Challenge/agorize_playground/CardinalityEstimation/src/DataExecuterDemo.cpp" "/workspaces/UK-Tech-Arena-Challenge/agorize_playground/CardinalityEstimation/build/CMakeFiles/main.dir/src/DataExecuterDemo.cpp.o"
-  "/workspaces/UK-Tech-Arena-Challenge/agorize_playground/CardinalityEstimation/src/TimingUtils.cpp" "/workspaces/UK-Tech-Arena-Challenge/agorize_playground/CardinalityEstimation/build/CMakeFiles/main.dir/src/TimingUtils.cpp.o"
-  "/workspaces/UK-Tech-Arena-Challenge/agorize_playground/CardinalityEstimation/src/main.cpp" "/workspaces/UK-Tech-Arena-Challenge/agorize_playground/CardinalityEstimation/build/CMakeFiles/main.dir/src/main.cpp.o"
-  )
-set(CMAKE_CXX_COMPILER_ID "GNU")
 
-# The include file search paths:
-set(CMAKE_CXX_TARGET_INCLUDE_PATH
-  "../include"
-  "../include_common"
+# The set of dependency files which are needed:
+set(CMAKE_DEPENDS_DEPENDENCY_FILES
+  "/home/mikolaj/GIT/UK-Tech-Arena-Challenge/agorize_playground/CardinalityEstimation/src/CardinalityEstimation.cpp" "CMakeFiles/main.dir/src/CardinalityEstimation.cpp.o" "gcc" "CMakeFiles/main.dir/src/CardinalityEstimation.cpp.o.d"
+  "/home/mikolaj/GIT/UK-Tech-Arena-Challenge/agorize_playground/CardinalityEstimation/src/DataExecuterDemo.cpp" "CMakeFiles/main.dir/src/DataExecuterDemo.cpp.o" "gcc" "CMakeFiles/main.dir/src/DataExecuterDemo.cpp.o.d"
+  "/home/mikolaj/GIT/UK-Tech-Arena-Challenge/agorize_playground/CardinalityEstimation/src/TimingUtils.cpp" "CMakeFiles/main.dir/src/TimingUtils.cpp.o" "gcc" "CMakeFiles/main.dir/src/TimingUtils.cpp.o.d"
+  "/home/mikolaj/GIT/UK-Tech-Arena-Challenge/agorize_playground/CardinalityEstimation/src/main.cpp" "CMakeFiles/main.dir/src/main.cpp.o" "gcc" "CMakeFiles/main.dir/src/main.cpp.o.d"
   )
 
 # Targets to which this target links.

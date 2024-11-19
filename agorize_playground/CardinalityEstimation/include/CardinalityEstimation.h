@@ -8,33 +8,28 @@
 #include <cstdint>
 
 class CEEngine {
-public:
-    // Constructor and destructor
-    CEEngine(int num, DataExecuter* dataExecuter);
-    ~CEEngine() = default;
-
-    // Public methods
-    void insertTuple(const std::vector<int>& tuple);
-    void deleteTuple(const std::vector<int>& tuple, int tupleId);
-    int query(const std::vector<CompareExpression>& quals);
-    void prepare();
-
 private:
-    // Private members
-    DataExecuter* dataExecuter;
-    int precision;  // Precision for HyperLogLog
-    std::vector<uint8_t> registers; // HyperLogLog registers
-    double alpha; // Correction factor for HyperLogLog
-    bool dirty; // Tracks if the registers need rebuilding
+    int numBins;                         // Number of bins in the histogram
+    int minValue;                        // Minimum value of the histogram range
+    int maxValue;                        // Maximum value of the histogram range
+    double binWidth;                     // Width of each bin
+    std::vector<int> histogram;          // Histogram data
+    bool dirty;                          // Flag to indicate if the histogram is dirty
 
-    // Tuple management
-    std::vector<int> freeIndices; // Reusable indices for deleted tuples
-    std::unordered_map<int, int> tupleIdToIndex; // Maps tuple IDs to indices
+    DataExecuter* dataExecuter;          // Pointer to the data executor
 
-    // Private methods
-    void hllInsert(int value);
-    int hllQuery(int value);
+    // Helper method declarations
+    int getBinIndex(int value) const;    // Get the bin index for a value
+    void updateHistogram(int value, int delta); // Update the histogram
+
+public:
+    CEEngine(int numBins, DataExecuter* dataExecuter);
+    void insertTuple(const std::vector<int>& tuple);
+    void deleteTuple(const std::vector<int>& tuple, int count);
+    int query(const std::vector<CompareExpression>& expressions);
+    void prepare();
 };
+
 
 #endif
 

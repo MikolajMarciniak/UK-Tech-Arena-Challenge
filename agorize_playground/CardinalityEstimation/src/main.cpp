@@ -5,15 +5,17 @@
 #include "TimingUtils.h"
 
 int main(int argc, char* argv[]) {
-    int initSize = 100000;
-    int opSize = 100000;
+    // Initialize parameters
+    int initSize = 100000;  // Initial number of tuples
+    int opSize = 10000;    // Number of operations
     double score = 0;
     int cnt = 0;
 
+    // Initialize data generator and cardinality estimation engine
     DataExecuterDemo dataExecuter(initSize - 1, opSize);
     CEEngine ceEngine(initSize, &dataExecuter);
 
-    // Create TimingData instances for each operation
+    // Create TimingData instances for measuring time for each operation
     TimingData insertTiming;
     TimingData deleteTiming;
     TimingData queryTiming;
@@ -22,16 +24,20 @@ int main(int argc, char* argv[]) {
     // Create a MaxMemoryTracker to track maximum memory usage
     MaxMemoryTracker memoryTracker;
 
+    // Get the first action from the data executer
     Action action = dataExecuter.getNextAction();
 
+    // Process actions until none are left
     while (action.actionType != NONE) {
+        // Prepare operation (e.g., cleanup or initialization)
         measureExecutionTime(
-                [&]() { ceEngine.prepare(); },
-                prepareTiming,
-                memoryTracker,
-                "Prepare"
-            );
+            [&]() { ceEngine.prepare(); },
+            prepareTiming,
+            memoryTracker,
+            "Prepare"
+        );
 
+        // Process action based on its type
         if (action.actionType == INSERT) {
             measureExecutionTime(
                 [&]() { ceEngine.insertTuple(action.actionTuple); },
@@ -39,7 +45,6 @@ int main(int argc, char* argv[]) {
                 memoryTracker,
                 "Insert"
             );
-
         } else if (action.actionType == DELETE) {
             measureExecutionTime(
                 [&]() { ceEngine.deleteTuple(action.actionTuple, action.tupleId); },
@@ -47,24 +52,24 @@ int main(int argc, char* argv[]) {
                 memoryTracker,
                 "Delete"
             );
-
         } else if (action.actionType == QUERY) {
             measureExecutionTime(
                 [&]() { 
-                    int estimatedCount = ceEngine.query(action.quals);
-                    score += dataExecuter.answer(estimatedCount); // Update score
+                    int estimatedCount = ceEngine.query(action.quals); // Perform query
+                    score += dataExecuter.answer(estimatedCount);      // Update error score
                 },
                 queryTiming,
                 memoryTracker,
                 "Query"
             );
-            cnt++;
+            cnt++; // Increment the number of queries processed
         }
 
+        // Get the next action
         action = dataExecuter.getNextAction();
     }
 
-    // Print the results for each operation type
+    // Print the timing results for each operation
     insertTiming.print("Insert");
     deleteTiming.print("Delete");
     queryTiming.print("Query");
@@ -73,6 +78,7 @@ int main(int argc, char* argv[]) {
     // Print the maximum memory usage observed
     memoryTracker.printMaxMemory("Max Memory");
 
+    // Print the average error across all queries
     std::cout << "Average Error: " << score / cnt << std::endl;
 
     return 0;

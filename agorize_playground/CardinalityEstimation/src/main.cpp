@@ -19,26 +19,33 @@ int main(int argc, char* argv[]) {
     TimingData queryTiming;
     TimingData prepareTiming;
 
+    // Create a MaxMemoryTracker to track maximum memory usage
+    MaxMemoryTracker memoryTracker;
+
     Action action = dataExecuter.getNextAction();
 
-    while (action.actionType != NONE) {measureExecutionTime(
+    while (action.actionType != NONE) {
+        measureExecutionTime(
                 [&]() { ceEngine.prepare(); },
                 prepareTiming,
-                "prepare"
+                memoryTracker,
+                "Prepare"
             );
-        
+
         if (action.actionType == INSERT) {
             measureExecutionTime(
                 [&]() { ceEngine.insertTuple(action.actionTuple); },
                 insertTiming,
-                "insert"
+                memoryTracker,
+                "Insert"
             );
 
         } else if (action.actionType == DELETE) {
             measureExecutionTime(
                 [&]() { ceEngine.deleteTuple(action.actionTuple, action.tupleId); },
                 deleteTiming,
-                "delete"
+                memoryTracker,
+                "Delete"
             );
 
         } else if (action.actionType == QUERY) {
@@ -48,18 +55,23 @@ int main(int argc, char* argv[]) {
                     score += dataExecuter.answer(estimatedCount); // Update score
                 },
                 queryTiming,
-                "query"
+                memoryTracker,
+                "Query"
             );
             cnt++;
         }
+
         action = dataExecuter.getNextAction();
     }
 
-    // Print results for each operation
-    insertTiming.print("insert");
-    deleteTiming.print("delete");
-    queryTiming.print("query");
-    prepareTiming.print("prepare");
+    // Print the results for each operation type
+    insertTiming.print("Insert");
+    deleteTiming.print("Delete");
+    queryTiming.print("Query");
+    prepareTiming.print("Prepare");
+
+    // Print the maximum memory usage observed
+    memoryTracker.printMaxMemory("Max Memory");
 
     std::cout << "Average Error: " << score / cnt << std::endl;
 

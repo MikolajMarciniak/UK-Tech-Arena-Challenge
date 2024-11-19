@@ -15,7 +15,24 @@ struct TimingData {
     void print(const std::string& operationName) const;
 };
 
-// Timing utility function to measure execution time
-void measureExecutionTime(const std::function<void()>& operation, TimingData& timingData, const std::string& operationName);
+// Struct to track memory usage
+struct MaxMemoryTracker {
+    long long maxMemory = 0;
+
+    // Update the maximum memory usage
+    void update(long long memoryUsage);
+
+    // Print the maximum memory usage
+    void printMaxMemory(const std::string& label) const;
+};
+
+// Function to measure execution time and memory usage
+void measureExecutionTime(const std::function<void()>& operation, 
+                          TimingData& timingData, 
+                          MaxMemoryTracker& memoryTracker, 
+                          const std::string& operationName);
+
+// Function to get the current memory usage (in KB)
+long long getMemoryUsage();
 
 #endif // TIMING_UTILS_H

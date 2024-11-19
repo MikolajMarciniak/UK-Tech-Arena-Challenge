@@ -2,86 +2,108 @@
 #include "../include/CardinalityEstimation.h"
 #include <iostream>
 #include <algorithm>
+#include <limits>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
+#include <functional>
 #include <cmath>
 
+// Global variables for tuples and their IDs
 std::vector<std::vector<int>> tuples;
-std::unordered_map<int, int> tupleIdToIndex;  // Maps tuple ID to index in `tuples`
-std::vector<int> freeIndices;  // To reuse freed indices in `tuples`
+std::vector<int> tupleIds;
+std::unordered_map<int, int> tupleIdToIndex;
+std::vector<int> freeIndices;
 int nextTupleId = 0;
 
-// Optimized hash function
-inline unsigned int hash1(int value) {
-    return std::hash<int>{}(value);  // Standard hash function
+// Simple hash function
+unsigned int hash1(int value) {
+    return value * 2654435761u;
 }
 
+// Constructor
 CEEngine::CEEngine(int num, DataExecuter* dataExecuter) {
     this->dataExecuter = dataExecuter;
     this->precision = 14;  // Using 2^14 registers
-    int numRegisters = 1 << precision;
-    this->registers.resize(numRegisters, 0);
+    this->registers.resize(1 << precision, 0);
+    this->dirty = false; // Registers start clean
 
-    // Precompute alpha
+    // Calculate alpha based on precision
     switch (precision) {
         case 4:  this->alpha = 0.673; break;
         case 5:  this->alpha = 0.697; break;
         case 6:  this->alpha = 0.709; break;
-        default: this->alpha = 0.7213 / (1.0 + 1.079 / numRegisters);
+        default: this->alpha = 0.7213 / (1.0 + 1.079 / (1 << precision));
     }
 }
 
+// Insert a tuple
 void CEEngine::insertTuple(const std::vector<int>& tuple) {
-    int index;
+    // Reuse deleted indices if available
     if (!freeIndices.empty()) {
-        index = freeIndices.back();
+        int index = freeIndices.back();
         freeIndices.pop_back();
         tuples[index] = tuple;
+        tupleIdToIndex[nextTupleId] = index;
     } else {
-        index = tuples.size();
         tuples.push_back(tuple);
+        tupleIdToIndex[nextTupleId] = tuples.size() - 1;
     }
 
-    tupleIdToIndex[nextTupleId] = index;
-
+    // Update the HLL registers directly for all values in the tuple
     for (int value : tuple) {
         hllInsert(value);
     }
+
     nextTupleId++;
 }
 
+// Delete a tuple
 void CEEngine::deleteTuple(const std::vector<int>& tuple, int tupleId) {
     auto it = tupleIdToIndex.find(tupleId);
-    if (it != tupleIdToIndex.end()) {
-        int index = it->second;
-        freeIndices.push_back(index);  // Reuse index for future insertions
-        tupleIdToIndex.erase(it);
-        prepare();  // Rebuild HLL after deletion
+    if (it == tupleIdToIndex.end()) {
+        return; // Tuple ID not found
+    }
+
+    int index = it->second;
+    tupleIdToIndex.erase(it);
+    freeIndices.push_back(index);
+
+    // Mark registers as dirty for a future rebuild
+    dirty = true;
+
+    // Optionally rebuild if too many deletions have occurred
+    if (tupleIdToIndex.size() < (tuples.size() / 2)) {
+        prepare();
+        dirty = false;
     }
 }
 
+// HyperLogLog Insert
 void CEEngine::hllInsert(int value) {
     uint32_t hash = hash1(value);
     int index = hash >> (32 - precision);
-    int zeros = __builtin_clz(hash << precision) + 1;  // Calculate leading zeros efficiently
+    int zeros = __builtin_clz(hash) - (32 - precision) + 1;
     registers[index] = std::max(registers[index], static_cast<uint8_t>(zeros));
 }
 
+// HyperLogLog Query
 int CEEngine::hllQuery(int value) {
-    double harmonicSum = 0;
+    double harmonicMean = 0;
     int numRegisters = 1 << precision;
-    int zeroCount = 0;
 
     for (uint8_t rank : registers) {
-        if (rank == 0) ++zeroCount;
-        harmonicSum += std::pow(2.0, -rank);
+        harmonicMean += std::pow(2.0, -rank);
     }
 
-    double estimate = alpha * numRegisters * numRegisters / harmonicSum;
+    double estimate = alpha * numRegisters * numRegisters / harmonicMean;
 
     // Small range correction
-    if (estimate <= 2.5 * numRegisters && zeroCount > 0) {
-        estimate = numRegisters * std::log(static_cast<double>(numRegisters) / zeroCount);
+    if (estimate <= 2.5 * numRegisters) {
+        int zeros = std::count(registers.begin(), registers.end(), 0);
+        if (zeros > 0) {
+            estimate = numRegisters * std::log(static_cast<double>(numRegisters) / zeros);
+        }
     }
     // Large range correction
     else if (estimate > (1.0 / 30.0) * std::pow(2, 32)) {
@@ -91,9 +113,15 @@ int CEEngine::hllQuery(int value) {
     return static_cast<int>(estimate);
 }
 
+// Cardinality Query with Qualifiers
 int CEEngine::query(const std::vector<CompareExpression>& quals) {
+    if (dirty) {
+        prepare(); // Ensure registers are up-to-date
+        dirty = false;
+    }
+
     if (quals.empty()) {
-        return hllQuery(0);  // Return total cardinality estimate
+        return hllQuery(0); // Return total cardinality estimate
     }
 
     int maxEstimate = 0;
@@ -104,13 +132,29 @@ int CEEngine::query(const std::vector<CompareExpression>& quals) {
 }
 
 void CEEngine::prepare() {
+    if (!dirty) {
+        return;  // No need to prepare if not dirty
+    }
+
     // Reset HLL registers
     std::fill(registers.begin(), registers.end(), 0);
 
-    // Rebuild HLL from remaining tuples
+    // Create a set of unique values for the current tuples
+    std::unordered_set<int> uniqueValues;
+
+    // Iterate over existing tuples and collect unique values
     for (const auto& tuple : tuples) {
         for (int value : tuple) {
-            hllInsert(value);
+            uniqueValues.insert(value);
         }
     }
+
+    // Rebuild registers from the unique values
+    for (int value : uniqueValues) {
+        hllInsert(value);
+    }
+
+    dirty = false; // Mark as clean after rebuilding
 }
+
+

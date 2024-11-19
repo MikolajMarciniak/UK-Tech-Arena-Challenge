@@ -84,12 +84,10 @@ Action DataExecuterDemo::getNextAction() {
     return action;
 }
 
-// Compute the error between the estimated and actual cardinality
 double DataExecuterDemo::answer(int ans) {
     int cnt = 0;
-
-    // Calculate the true cardinality based on the current action's qualifiers
-    for (int i = 0; i <= end; ++i) {
+    
+     for (int i = 0; i <= end; ++i) {
         if (vis[i]) continue;
 
         bool flag = true;
@@ -107,7 +105,6 @@ double DataExecuterDemo::answer(int ans) {
         if (flag) cnt++;
     }
 
-    // Compute the logarithmic error
     double error = fabs(std::log((ans + 1.0) / (cnt + 1.0)));
     return error;
 }

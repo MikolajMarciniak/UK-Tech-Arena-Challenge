@@ -22,8 +22,8 @@ inline uint32_t fastHash(int value) {
 // Constructor
 CEEngine::CEEngine(int num, DataExecuter* dataExecuter) {
     this->dataExecuter = dataExecuter;
-    this->precision = 14;  // Using 2^14 registers
-    this->registers.resize(1 << precision, 0);
+    this->precision = 13;  //(2^13 registers)
+    this->registers.resize(1 << precision, 0); // Memory usage: ~8 KB
     this->dirty = false;
 
     // Precompute alpha for precision
@@ -61,7 +61,6 @@ void CEEngine::deleteTuple(const std::vector<int>& tuple, int tupleId) {
     tupleIdToIndex.erase(it);
     freeIndices.push_back(index);
 
-    // Minimal rebuild logic
     if (!dirty && tupleIdToIndex.size() < (tuples.size() / 2)) {
         dirty = true;
     }
@@ -92,14 +91,14 @@ int CEEngine::hllQuery(int value) {
 
     double estimate = alpha * (1 << precision) * (1 << precision) / harmonicMean;
 
-    // Small range correction
+
     if (estimate <= 2.5 * (1 << precision)) {
         int zeros = std::count(registers.begin(), registers.end(), 0);
         if (zeros > 0) {
             estimate = (1 << precision) * std::log(static_cast<double>(1 << precision) / zeros);
         }
     }
-    // Large range correction
+
     else if (estimate > (1.0 / 30.0) * std::pow(2, 32)) {
         estimate = -std::pow(2, 32) * std::log(1.0 - estimate / std::pow(2, 32));
     }
@@ -116,9 +115,14 @@ int CEEngine::query(const std::vector<CompareExpression>& quals) {
 
     if (quals.empty()) return hllQuery(0);
 
+    // Efficient query evaluation
     int maxEstimate = 0;
     for (const auto& qual : quals) {
-        maxEstimate = std::max(maxEstimate, hllQuery(qual.value));
+        int estimate = hllQuery(qual.value);
+        maxEstimate = std::max(maxEstimate, estimate);
+
+    
+        if (maxEstimate == tupleIdToIndex.size()) break;
     }
     return maxEstimate;
 }

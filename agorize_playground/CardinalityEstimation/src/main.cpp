@@ -14,50 +14,55 @@ int main(int argc, char* argv[]) {
     CEEngine ceEngine(initSize, &dataExecuter);
 
     // Create TimingData instances for each operation
-    TimingData insertTiming;
-    TimingData deleteTiming;
-    TimingData queryTiming;
-    TimingData prepareTiming;
+    //TimingData insertTiming;
+    //TimingData deleteTiming;
+    //TimingData queryTiming;
+    //TimingData prepareTiming;
 
     // Create a MaxMemoryTracker to track maximum memory usage
-    MaxMemoryTracker memoryTracker;
+    //MaxMemoryTracker memoryTracker;
 
     Action action = dataExecuter.getNextAction();
 
     while (action.actionType != NONE) {
-        measureExecutionTime(
-                [&]() { ceEngine.prepare(); },
-                prepareTiming,
-                memoryTracker,
-                "Prepare"
-            );
+        //measureExecutionTime(
+        //        [&]() { ceEngine.prepare(); },
+        //       prepareTiming,
+        //        memoryTracker,
+        //        "Prepare"
+        //    );
+        ceEngine.prepare();
 
         if (action.actionType == INSERT) {
-            measureExecutionTime(
-                [&]() { ceEngine.insertTuple(action.actionTuple); },
-                insertTiming,
-                memoryTracker,
-                "Insert"
-            );
+            //measureExecutionTime(
+            //    [&]() { ceEngine.insertTuple(action.actionTuple); },
+            //    insertTiming,
+            //    memoryTracker,
+            //   "Insert"
+            //);
+            ceEngine.insertTuple(action.actionTuple);
 
         } else if (action.actionType == DELETE) {
-            measureExecutionTime(
-                [&]() { ceEngine.deleteTuple(action.actionTuple, action.tupleId); },
-                deleteTiming,
-                memoryTracker,
-                "Delete"
-            );
+            //measureExecutionTime(
+            //    [&]() { ceEngine.deleteTuple(action.actionTuple, action.tupleId); },
+            //    deleteTiming,
+            //    memoryTracker,
+            //    "Delete"
+            //);
+            ceEngine.deleteTuple(action.actionTuple, action.tupleId);
 
         } else if (action.actionType == QUERY) {
-            measureExecutionTime(
-                [&]() { 
-                    int estimatedCount = ceEngine.query(action.quals);
-                    score += dataExecuter.answer(estimatedCount); // Update score
-                },
-                queryTiming,
-                memoryTracker,
-                "Query"
-            );
+            //measureExecutionTime(
+            //    [&]() { 
+            //        int estimatedCount = ceEngine.query(action.quals);
+            //        score += dataExecuter.answer(estimatedCount); // Update score
+            //    },
+            //   queryTiming,
+            //    memoryTracker,
+            //    "Query"
+            //);
+            int estimatedCount = ceEngine.query(action.quals);
+            score += dataExecuter.answer(estimatedCount);
             cnt++;
         }
 
@@ -65,13 +70,13 @@ int main(int argc, char* argv[]) {
     }
 
     // Print the results for each operation type
-    insertTiming.print("Insert");
-    deleteTiming.print("Delete");
-    queryTiming.print("Query");
-    prepareTiming.print("Prepare");
+    //insertTiming.print("Insert");
+    //deleteTiming.print("Delete");
+    //queryTiming.print("Query");
+    //prepareTiming.print("Prepare");
 
     // Print the maximum memory usage observed
-    memoryTracker.printMaxMemory("Max Memory");
+    //memoryTracker.printMaxMemory("Max Memory");
 
     std::cout << "Average Error: " << score / cnt << std::endl;
 

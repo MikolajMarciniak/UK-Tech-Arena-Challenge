@@ -6,6 +6,7 @@
 #include <unordered_set>
 #include <vector>
 #include <cmath>
+#include <future>
 
 // Global variables for tuples and their IDs
 std::vector<std::vector<int>> tuples;
@@ -22,15 +23,12 @@ inline uint32_t fastHash(int value) {
 // Constructor
 CEEngine::CEEngine(int num, DataExecuter* dataExecuter) {
     this->dataExecuter = dataExecuter;
-    this->precision = 13;  //(2^13 registers)
-    this->registers.resize(1 << precision, 0); // Memory usage: ~8 KB
+    this->precision = 10;  //(2^10 registers)
+    this->registers.resize(1 << precision, 0);  // Memory usage: ~8 KB
     this->dirty = false;
 
     // Precompute alpha for precision
-    this->alpha = (precision <= 6) 
-        ? (precision == 4 ? 0.673 : (precision == 5 ? 0.697 : 0.709)) 
-        : 0.7213 / (1.0 + 1.079 / (1 << precision));
-}
+   this->alpha = 0.7213 / (1.0 + 1.079 / (1 << precision));}
 
 // Insert a tuple
 void CEEngine::insertTuple(const std::vector<int>& tuple) {
@@ -115,17 +113,29 @@ int CEEngine::query(const std::vector<CompareExpression>& quals) {
 
     if (quals.empty()) return hllQuery(0);
 
-    // Efficient query evaluation
+    // Efficient query evaluation with caching
     int maxEstimate = 0;
+    std::unordered_map<int, int> queryCache;  // Cache for hllQuery results
+
+    // Process each query in a single thread (no parallelism)
     for (const auto& qual : quals) {
-        int estimate = hllQuery(qual.value);
+        int value = qual.value;
+
+        // Check if we've already computed the estimate for this value
+        if (queryCache.find(value) == queryCache.end()) {
+            queryCache[value] = hllQuery(value);  // Compute and cache
+        }
+
+        int estimate = queryCache[value];
         maxEstimate = std::max(maxEstimate, estimate);
 
-    
+        // Early exit if we have found the maximum possible estimate
         if (maxEstimate == tupleIdToIndex.size()) break;
     }
+
     return maxEstimate;
 }
+
 
 // Prepare for Rebuild
 void CEEngine::prepare() {

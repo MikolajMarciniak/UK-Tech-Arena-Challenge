@@ -1,93 +1,148 @@
-//
-// You should modify this file.
-//
 #include "../include/common/Root.h"
 #include "../include/CardinalityEstimation.h"
+#include <iostream>
+#include <algorithm>
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>
+#include <cmath>
+
+// Global variables for tuples and their IDs
 std::vector<std::vector<int>> tuples;
 std::vector<int> tupleIds;
-std::unordered_map<int, std::unordered_map<int, std::vector<int>>> columnIndex;
+std::unordered_map<int, int> tupleIdToIndex;
+std::vector<int> freeIndices;
 int nextTupleId = 0;
 
-void CEEngine::insertTuple(const std::vector<int>& tuple)
-{
-    // Implement your insert tuple logic here.
-    // push_back -> vectors are useful for our task given 
-    //we are dealing with millions of rows 
- tuples.push_back(tuple);
-    tupleIds.push_back(nextTupleId);
+// Faster hash function (optimized multiplicative hash)
+inline uint32_t fastHash(int value) {
+    return value * 0x9E3779B1;
+}
+
+// Constructor
+CEEngine::CEEngine(int num, DataExecuter* dataExecuter) {
+    this->dataExecuter = dataExecuter;
+    this->precision = 13;  //(2^13 registers)
+    this->registers.resize(1 << precision, 0); // Memory usage: ~8 KB
+    this->dirty = false;
+
+    // Precompute alpha for precision
+    this->alpha = (precision <= 6) 
+        ? (precision == 4 ? 0.673 : (precision == 5 ? 0.697 : 0.709)) 
+        : 0.7213 / (1.0 + 1.079 / (1 << precision));
+}
+
+// Insert a tuple
+void CEEngine::insertTuple(const std::vector<int>& tuple) {
+    if (!freeIndices.empty()) {
+        int index = freeIndices.back();
+        freeIndices.pop_back();
+        tuples[index] = tuple;
+        tupleIdToIndex[nextTupleId] = index;
+    } else {
+        tuples.push_back(tuple);
+        tupleIdToIndex[nextTupleId] = tuples.size() - 1;
+    }
+
+    // Batch update HLL registers for the tuple
+    for (int value : tuple) {
+        hllInsert(value);
+    }
+
     nextTupleId++;
 }
 
-void CEEngine::deleteTuple(const std::vector<int>& tuple, int tupleId)
-{
-    // Implement your delete tuple logic here.
-auto idIt = std::find(tupleIds.begin(), tupleIds.end(), tupleId);
-    if (idIt != tupleIds.end())
-    {
-        int index = std::distance(tupleIds.begin(), idIt);
-        tuples.erase(tuples.begin() + index);
-        tupleIds.erase(idIt);
+// Delete a tuple
+void CEEngine::deleteTuple(const std::vector<int>& tuple, int tupleId) {
+    auto it = tupleIdToIndex.find(tupleId);
+    if (it == tupleIdToIndex.end()) return;
+
+    int index = it->second;
+    tupleIdToIndex.erase(it);
+    freeIndices.push_back(index);
+
+    if (!dirty && tupleIdToIndex.size() < (tuples.size() / 2)) {
+        dirty = true;
     }
 }
 
-int CEEngine::query(const std::vector<CompareExpression>& quals)
-{
-    int matchCount = 0;
+// HyperLogLog Insert
+inline void CEEngine::hllInsert(int value) {
+    uint32_t hash = fastHash(value);
+    int index = hash >> (32 - precision);
+    int zeros = __builtin_clz(hash) - (32 - precision) + 1;
+    registers[index] = std::max(registers[index], static_cast<uint8_t>(zeros));
+}
 
-    for (const auto& tuple : tuples)
-    {
-        bool matches = true;
-
-        for (const auto& qual : quals)
-        {
-            if (qual.columnIdx >= tuple.size())
-            {
-                matches = false;
-                break;
-            }
-
-            int tupleValue = tuple[qual.columnIdx];
-            switch (qual.compareOp)
-            {
-                case EQUAL:
-                    if (tupleValue != qual.value)
-                    {
-                        matches = false;
-                    }
-                    break;
-                case GREATER:
-                    if (tupleValue <= qual.value)
-                    {
-                        matches = false;
-                    }
-                    break;
-                default:
-                    throw std::invalid_argument("Unsupported CompareOp");
-            }
-
-            if (!matches)
-            {
-                break; 
-            }
+// HyperLogLog Query
+int CEEngine::hllQuery(int value) {
+    static std::vector<double> precomputedPowers = [] {
+        std::vector<double> powers(256, 0.0);
+        for (int i = 0; i < 256; ++i) {
+            powers[i] = std::pow(2.0, -i);
         }
+        return powers;
+    }();
 
-        if (matches)
-        {
-            matchCount++;
+    double harmonicMean = 0;
+    for (uint8_t rank : registers) {
+        harmonicMean += precomputedPowers[rank];
+    }
+
+    double estimate = alpha * (1 << precision) * (1 << precision) / harmonicMean;
+
+
+    if (estimate <= 2.5 * (1 << precision)) {
+        int zeros = std::count(registers.begin(), registers.end(), 0);
+        if (zeros > 0) {
+            estimate = (1 << precision) * std::log(static_cast<double>(1 << precision) / zeros);
         }
     }
 
-    return matchCount;
+    else if (estimate > (1.0 / 30.0) * std::pow(2, 32)) {
+        estimate = -std::pow(2, 32) * std::log(1.0 - estimate / std::pow(2, 32));
+    }
+
+    return static_cast<int>(estimate);
 }
 
+// Cardinality Query with Qualifiers
+int CEEngine::query(const std::vector<CompareExpression>& quals) {
+    if (dirty) {
+        prepare();
+        dirty = false;
+    }
 
-void CEEngine::prepare()
-{
-    // Implement your prepare function here.
+    if (quals.empty()) return hllQuery(0);
+
+    // Efficient query evaluation
+    int maxEstimate = 0;
+    for (const auto& qual : quals) {
+        int estimate = hllQuery(qual.value);
+        maxEstimate = std::max(maxEstimate, estimate);
+
+    
+        if (maxEstimate == tupleIdToIndex.size()) break;
+    }
+    return maxEstimate;
 }
 
-CEEngine::CEEngine(int num, DataExecuter *dataExecuter)
-{
-    // Implement your constructor here.
-    this->dataExecuter = dataExecuter;
+// Prepare for Rebuild
+void CEEngine::prepare() {
+    if (!dirty) return;
+
+    std::fill(registers.begin(), registers.end(), 0);
+
+    std::unordered_set<int> uniqueValues;
+    for (const auto& tuple : tuples) {
+        for (int value : tuple) {
+            uniqueValues.insert(value);
+        }
+    }
+
+    for (int value : uniqueValues) {
+        hllInsert(value);
+    }
+
+    dirty = false;
 }

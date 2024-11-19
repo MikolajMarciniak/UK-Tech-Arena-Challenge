@@ -1,44 +1,40 @@
 #ifndef CARDINALITYESTIMATION_ENGINE
 #define CARDINALITYESTIMATION_ENGINE
-//
-// You should modify this file.
-//
+
 #include <executer/DataExecuter.h>
 #include <common/Expression.h>
+#include <vector>
+#include <unordered_map>
+#include <cstdint>
+
 class CEEngine {
 public:
-    /**
-     * Insert a tuple, indicating that the tuple is inserted and appended to the end of the disk.
-     * @param tuple Inserted tuple.
-     */
-    void insertTuple(const std::vector<int>& tuple);
-    /**
-     * Deletion function. Pass a tuple and tupleId, indicating that the tuple at the tupleId position is deleted.
-     * @param tuple Deleted tuple.
-     * @param tupleId Location of the deleted tuple.
-     */
-    void deleteTuple(const std::vector<int>& tuple, int tupleId);
-    /**
-     * Query function, pass in expression, return estimated cardinality result.
-     * @param quals expression.
-     * @return return estimated cardinality result.
-     */
-    int query(const std::vector<CompareExpression>& quals);
-    /**
-     * Preprocessing function of the cardinality estimation algorithm. This function is executed before each operation
-     * is called.
-     */
-    void prepare();
-    /**
-     * The constructor function of cardinality estimation.
-     * @param num Size of the initial data set.
-     * @param dataExecuter Interfaces for datasets.
-     */
-    CEEngine(int num, DataExecuter *dataExecuter);
+    // Constructor and destructor
+    CEEngine(int num, DataExecuter* dataExecuter);
     ~CEEngine() = default;
 
+    // Public methods
+    void insertTuple(const std::vector<int>& tuple);
+    void deleteTuple(const std::vector<int>& tuple, int tupleId);
+    int query(const std::vector<CompareExpression>& quals);
+    void prepare();
+
 private:
-    DataExecuter *dataExecuter;
+    // Private members
+    DataExecuter* dataExecuter;
+    int precision;  // Precision for HyperLogLog
+    std::vector<uint8_t> registers; // HyperLogLog registers
+    double alpha; // Correction factor for HyperLogLog
+    bool dirty; // Tracks if the registers need rebuilding
+
+    // Tuple management
+    std::vector<int> freeIndices; // Reusable indices for deleted tuples
+    std::unordered_map<int, int> tupleIdToIndex; // Maps tuple IDs to indices
+
+    // Private methods
+    void hllInsert(int value);
+    int hllQuery(int value);
 };
 
 #endif
+

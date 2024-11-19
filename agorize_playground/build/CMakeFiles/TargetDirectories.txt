@@ -1,0 +1,3 @@
+/home/mikolaj/GIT/UK-Tech-Arena-Challenge/agorize_playground/build/CMakeFiles/main.dir
+/home/mikolaj/GIT/UK-Tech-Arena-Challenge/agorize_playground/build/CMakeFiles/edit_cache.dir
+/home/mikolaj/GIT/UK-Tech-Arena-Challenge/agorize_playground/build/CMakeFiles/rebuild_cache.dir

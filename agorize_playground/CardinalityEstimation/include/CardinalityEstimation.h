@@ -20,7 +20,15 @@ public:
     void prepare();
 
 private:
-    // Private members
+    // CMS-related members
+    size_t cms_width;
+    size_t cms_depth;
+    std::vector<std::vector<int32_t>> cms_matrix;
+    std::vector<uint32_t> cms_seeds;
+    int nextTupleId = 0;
+
+    // Additional private method
+    int estimateFrequency(int value);
     DataExecuter* dataExecuter;
     int precision;  // Precision for HyperLogLog
     std::vector<uint8_t> registers; // HyperLogLog registers
@@ -35,6 +43,7 @@ private:
     void hllInsert(int value);
     int hllQuery(int value);
 };
+
 
 #endif
 

@@ -1,3 +1,0 @@
-/workspaces/UK-Tech-Arena-Challenge/agorize_playground/CardinalityEstimation/build/CMakeFiles/rebuild_cache.dir
-/workspaces/UK-Tech-Arena-Challenge/agorize_playground/CardinalityEstimation/build/CMakeFiles/edit_cache.dir
-/workspaces/UK-Tech-Arena-Challenge/agorize_playground/CardinalityEstimation/build/CMakeFiles/main.dir

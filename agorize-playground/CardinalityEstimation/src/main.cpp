@@ -7,7 +7,7 @@
 
 int main(int argc, char* argv[]) {
     int initSize = 100000;
-    int opSize = 10000;
+    int opSize = 100;
     double score = 0;
     int cnt = 0;
 

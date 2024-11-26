@@ -1,14 +1,9 @@
 file(REMOVE_RECURSE
   "CMakeFiles/main.dir/src/CardinalityEstimation.cpp.o"
-  "CMakeFiles/main.dir/src/CardinalityEstimation.cpp.o.d"
   "CMakeFiles/main.dir/src/DataExecuterDemo.cpp.o"
-  "CMakeFiles/main.dir/src/DataExecuterDemo.cpp.o.d"
   "CMakeFiles/main.dir/src/MemoryUtils.cpp.o"
-  "CMakeFiles/main.dir/src/MemoryUtils.cpp.o.d"
   "CMakeFiles/main.dir/src/TimingUtils.cpp.o"
-  "CMakeFiles/main.dir/src/TimingUtils.cpp.o.d"
   "CMakeFiles/main.dir/src/main.cpp.o"
-  "CMakeFiles/main.dir/src/main.cpp.o.d"
   "main"
   "main.pdb"
 )

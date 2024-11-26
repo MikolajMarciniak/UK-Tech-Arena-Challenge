@@ -29,6 +29,8 @@ public:
      * is called.
      */
     void prepare();
+    
+    double count();
     /**
      * The constructor function of cardinality estimation.
      * @param num Size of the initial data set.

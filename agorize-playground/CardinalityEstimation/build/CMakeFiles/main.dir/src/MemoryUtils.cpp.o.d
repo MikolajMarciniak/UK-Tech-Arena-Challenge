@@ -1,8 +1,8 @@
 CMakeFiles/main.dir/src/MemoryUtils.cpp.o: \
- /home/mikolaj/Downloads/CardinalityEstimation\ clean/src/MemoryUtils.cpp \
+ /home/mikolaj/Downloads/CardinalityEstimation\ clean/agorize-playground/CardinalityEstimation/src/MemoryUtils.cpp \
  /usr/include/stdc-predef.h \
- /home/mikolaj/Downloads/CardinalityEstimation\ clean/include/MemoryUtils.h \
- /home/mikolaj/Downloads/CardinalityEstimation\ clean/include/./common/ActionType.h \
+ /home/mikolaj/Downloads/CardinalityEstimation\ clean/agorize-playground/CardinalityEstimation/include/MemoryUtils.h \
+ /home/mikolaj/Downloads/CardinalityEstimation\ clean/agorize-playground/CardinalityEstimation/include/./common/ActionType.h \
  /usr/include/c++/11/string \
  /usr/include/x86_64-linux-gnu/c++/11/bits/c++config.h \
  /usr/include/x86_64-linux-gnu/c++/11/bits/os_defines.h \

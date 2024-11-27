@@ -1,0 +1,27 @@
+[
+{
+  "directory": "/home/mikolaj/Downloads/CardinalityEstimation clean/build",
+  "command": "g++  -I\"/home/mikolaj/Downloads/CardinalityEstimation clean/agorize-playground/CardinalityEstimation/include\" -I\"/home/mikolaj/Downloads/CardinalityEstimation clean/agorize-playground/CardinalityEstimation/include_common\"  -D_GLIBCXX_HAS_GTHREADS=0 -g   -w -o CMakeFiles/main.dir/src/CardinalityEstimation.cpp.o -c \"/home/mikolaj/Downloads/CardinalityEstimation clean/agorize-playground/CardinalityEstimation/src/CardinalityEstimation.cpp\"",
+  "file": "/home/mikolaj/Downloads/CardinalityEstimation clean/agorize-playground/CardinalityEstimation/src/CardinalityEstimation.cpp"
+},
+{
+  "directory": "/home/mikolaj/Downloads/CardinalityEstimation clean/build",
+  "command": "g++  -I\"/home/mikolaj/Downloads/CardinalityEstimation clean/agorize-playground/CardinalityEstimation/include\" -I\"/home/mikolaj/Downloads/CardinalityEstimation clean/agorize-playground/CardinalityEstimation/include_common\"  -D_GLIBCXX_HAS_GTHREADS=0 -g   -w -o CMakeFiles/main.dir/src/DataExecuterDemo.cpp.o -c \"/home/mikolaj/Downloads/CardinalityEstimation clean/agorize-playground/CardinalityEstimation/src/DataExecuterDemo.cpp\"",
+  "file": "/home/mikolaj/Downloads/CardinalityEstimation clean/agorize-playground/CardinalityEstimation/src/DataExecuterDemo.cpp"
+},
+{
+  "directory": "/home/mikolaj/Downloads/CardinalityEstimation clean/build",
+  "command": "g++  -I\"/home/mikolaj/Downloads/CardinalityEstimation clean/agorize-playground/CardinalityEstimation/include\" -I\"/home/mikolaj/Downloads/CardinalityEstimation clean/agorize-playground/CardinalityEstimation/include_common\"  -D_GLIBCXX_HAS_GTHREADS=0 -g   -w -o CMakeFiles/main.dir/src/MemoryUtils.cpp.o -c \"/home/mikolaj/Downloads/CardinalityEstimation clean/agorize-playground/CardinalityEstimation/src/MemoryUtils.cpp\"",
+  "file": "/home/mikolaj/Downloads/CardinalityEstimation clean/agorize-playground/CardinalityEstimation/src/MemoryUtils.cpp"
+},
+{
+  "directory": "/home/mikolaj/Downloads/CardinalityEstimation clean/build",
+  "command": "g++  -I\"/home/mikolaj/Downloads/CardinalityEstimation clean/agorize-playground/CardinalityEstimation/include\" -I\"/home/mikolaj/Downloads/CardinalityEstimation clean/agorize-playground/CardinalityEstimation/include_common\"  -D_GLIBCXX_HAS_GTHREADS=0 -g   -w -o CMakeFiles/main.dir/src/TimingUtils.cpp.o -c \"/home/mikolaj/Downloads/CardinalityEstimation clean/agorize-playground/CardinalityEstimation/src/TimingUtils.cpp\"",
+  "file": "/home/mikolaj/Downloads/CardinalityEstimation clean/agorize-playground/CardinalityEstimation/src/TimingUtils.cpp"
+},
+{
+  "directory": "/home/mikolaj/Downloads/CardinalityEstimation clean/build",
+  "command": "g++  -I\"/home/mikolaj/Downloads/CardinalityEstimation clean/agorize-playground/CardinalityEstimation/include\" -I\"/home/mikolaj/Downloads/CardinalityEstimation clean/agorize-playground/CardinalityEstimation/include_common\"  -D_GLIBCXX_HAS_GTHREADS=0 -g   -w -o CMakeFiles/main.dir/src/main.cpp.o -c \"/home/mikolaj/Downloads/CardinalityEstimation clean/agorize-playground/CardinalityEstimation/src/main.cpp\"",
+  "file": "/home/mikolaj/Downloads/CardinalityEstimation clean/agorize-playground/CardinalityEstimation/src/main.cpp"
+}
+]

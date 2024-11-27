@@ -4,7 +4,7 @@
 # compile CXX with g++
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I"/home/mikolaj/Downloads/CardinalityEstimation clean/include" -I"/home/mikolaj/Downloads/CardinalityEstimation clean/include_common"
+CXX_INCLUDES = -I"/home/mikolaj/Downloads/CardinalityEstimation clean/agorize-playground/CardinalityEstimation/include" -I"/home/mikolaj/Downloads/CardinalityEstimation clean/agorize-playground/CardinalityEstimation/include_common"
 
 CXX_FLAGS =  -D_GLIBCXX_HAS_GTHREADS=0   -w
 

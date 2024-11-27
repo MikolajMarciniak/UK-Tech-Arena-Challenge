@@ -9,7 +9,7 @@
 #include <functional>
 #include <chrono>
 
-#define NUM_REGISTERS 16
+#define NUM_REGISTERS 2048
 #define REGISTER_SIZE 32
 
 struct VectorHash {
@@ -25,11 +25,12 @@ struct VectorHash {
 
 class CEEngine {
 public:
+    CEEngine(int initialSize, DataExecuter *dataExecuter);
     void insertTuple(const std::vector<int>& tuple);
     void deleteTuple(const std::vector<int>& tuple, int tupleId);
     int query(const std::vector<CompareExpression>& quals);
+    int count();
     void prepare();
-    CEEngine(int num, DataExecuter *dataExecuter);
     ~CEEngine();
     void printTotalTime();
     
@@ -40,6 +41,9 @@ private:
     double totalElapsedTime = 0.0;
     int nextTupleId = 0;
     int* registers;
+
+    int initialSize; // Add this line
 };
+
 
 #endif

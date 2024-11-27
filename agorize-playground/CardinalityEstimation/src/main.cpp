@@ -5,20 +5,21 @@
 #include "TimingUtils.h"
 #include "MemoryUtils.h"
 
-int main(int argc, char* argv[]) {
-    int initSize = 10000;
-    int opSize = 20000;
+#include <iostream>
+#include <vector>
+
+void runTest(int initSize, int opSize) {
+    std::cout << "Initial size: " << initSize << " Operation size: " << opSize << std::endl << "\n";
     double score = 0;
     int cnt = 0;
 
     DataExecuterDemo dataExecuter(initSize - 1, opSize);
     CEEngine ceEngine(initSize, &dataExecuter);
-    // commented out code goes below here
+
+    ceEngine.prepare();
+
     Action action = dataExecuter.getNextAction();
-
-
     while (action.actionType != NONE) {
-        ceEngine.prepare();
         if (action.actionType == INSERT) {
             ceEngine.insertTuple(action.actionTuple);
         } else if (action.actionType == DELETE) {
@@ -30,8 +31,19 @@ int main(int argc, char* argv[]) {
         }
         action = dataExecuter.getNextAction();
     }
+
     ceEngine.printTotalTime();
-    std::cout << score / cnt << std::endl;
+    std::cout << "Average Error: " << score / cnt << std::endl << "\n";
+}
+
+
+int main(int argc, char* argv[]) {
+    runTest(1000, 200);
+    runTest(10000, 2000);
+    runTest(500000, 20000);
+    // runTest(1000000, 200000);
+
+    return 0;
 }
 
 

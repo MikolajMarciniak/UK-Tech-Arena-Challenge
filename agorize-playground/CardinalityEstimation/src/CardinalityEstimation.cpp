@@ -13,8 +13,11 @@ double queryElapsedTime = 0.0;
 void CEEngine::insertTuple(const std::vector<int>& tuple)
 {
     auto start = std::chrono::high_resolution_clock::now();
-
-    updateHLL(tuple, true);
+    
+    actionCounter++;
+    if (actionCounter % actionSamplingFrequency == 0) {
+        updateHLL(tuple, true);
+    }
 
     auto end = std::chrono::high_resolution_clock::now();
     double elapsed = std::chrono::duration_cast<std::chrono::duration<double>>(end - start).count();
@@ -26,7 +29,10 @@ void CEEngine::deleteTuple(const std::vector<int>& tuple, int tupleId)
 {
     auto start = std::chrono::high_resolution_clock::now();
 
-    updateHLL(tuple, false);
+    actionCounter++;
+    if (actionCounter % actionSamplingFrequency == 0) {
+        updateHLL(tuple, false);
+    }
 
     auto end = std::chrono::high_resolution_clock::now();
     double elapsed = std::chrono::duration_cast<std::chrono::duration<double>>(end - start).count();
@@ -38,7 +44,7 @@ int CEEngine::query(const std::vector<CompareExpression>& quals)
 {
     auto start = std::chrono::high_resolution_clock::now();
 
-    double estimate = count();
+    int estimate = count();
 
 
     auto end = std::chrono::high_resolution_clock::now();
@@ -123,26 +129,31 @@ int CEEngine::countLeadingZeros(uint32_t hash)
 
 
 void CEEngine::prepare() {
-    auto start = std::chrono::high_resolution_clock::now();
-
     std::vector<std::vector<int>> initialData;
-    dataExecuter->readTuples(0, initialSize, initialData);  // Read initialSize tuples
-    
+    dataExecuter->readTuples(0, initialSize, initialData);
+
+    std::vector<std::vector<int>> sampledData;
+    std::default_random_engine generator;
+    std::uniform_real_distribution<double> distribution(0.0, 1.0);
+
     for (const auto& tuple : initialData) {
-        updateHLL(tuple, true);  // Insert tuples into HLL
+        if (distribution(generator) < prepareSamplingRate) {
+            sampledData.push_back(tuple);
+        }
     }
-    
-    auto end = std::chrono::high_resolution_clock::now();
-    double elapsed = std::chrono::duration_cast<std::chrono::duration<double>>(end - start).count();
-    
-    prepareInsertElapsedTime += elapsed;    
+
+    for (const auto& tuple : sampledData) {
+        updateHLL(tuple, true);
+    }
 }
 
 
-
-CEEngine::CEEngine(int initialSize, DataExecuter *dataExecuter)
-    : dataExecuter(dataExecuter), initialSize(initialSize) {
-    registers = new int[NUM_REGISTERS * REGISTER_SIZE]();  // Zero-initialize the registers
+CEEngine::CEEngine(int initialSize, DataExecuter *dataExecuter, double prepareSamplingRate, int actionSamplingFrequency)
+    : dataExecuter(dataExecuter), 
+      prepareSamplingRate(prepareSamplingRate),
+      actionSamplingFrequency(actionSamplingFrequency),
+      initialSize(initialSize) {
+    registers = new int[NUM_REGISTERS * REGISTER_SIZE](); // Zero-initialize registers
 }
 
 

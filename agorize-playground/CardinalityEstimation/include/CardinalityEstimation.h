@@ -25,7 +25,7 @@ struct VectorHash {
 
 class CEEngine {
 public:
-    CEEngine(int initialSize, DataExecuter *dataExecuter);
+    CEEngine(int initialSize, DataExecuter *dataExecuter, double prepareSamplingRate, int actionSamplingFrequency);
     void insertTuple(const std::vector<int>& tuple);
     void deleteTuple(const std::vector<int>& tuple, int tupleId);
     int query(const std::vector<CompareExpression>& quals);
@@ -41,8 +41,11 @@ private:
     double totalElapsedTime = 0.0;
     int nextTupleId = 0;
     int* registers;
+    int initialSize;
 
-    int initialSize; // Add this line
+    double prepareSamplingRate;
+    int actionSamplingFrequency;
+    int actionCounter = 0;
 };
 
 

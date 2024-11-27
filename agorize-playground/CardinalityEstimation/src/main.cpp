@@ -8,18 +8,17 @@
 #include <iostream>
 #include <vector>
 
-void runTest(int initSize, int opSize) {
-    std::cout << "Initial size: " << initSize << " Operation size: " << opSize << std::endl << "\n";
+void runTest(int initSize, int opSize, double prepareSamplingRate, int actionSamplingFrequency) {
     double score = 0;
     int cnt = 0;
 
     DataExecuterDemo dataExecuter(initSize - 1, opSize);
-    CEEngine ceEngine(initSize, &dataExecuter);
-
-    ceEngine.prepare();
+    CEEngine ceEngine(initSize, &dataExecuter, prepareSamplingRate, actionSamplingFrequency);
 
     Action action = dataExecuter.getNextAction();
+
     while (action.actionType != NONE) {
+        ceEngine.prepare();
         if (action.actionType == INSERT) {
             ceEngine.insertTuple(action.actionTuple);
         } else if (action.actionType == DELETE) {
@@ -36,12 +35,12 @@ void runTest(int initSize, int opSize) {
     std::cout << "Average Error: " << score / cnt << std::endl << "\n";
 }
 
-
 int main(int argc, char* argv[]) {
-    runTest(1000, 200);
-    runTest(10000, 2000);
-    runTest(500000, 20000);
-    // runTest(1000000, 200000);
+    double prepareSamplingRate = 0.05;
+    int actionSamplingFrequency = 10;
+runTest(1000, 200, prepareSamplingRate, actionSamplingFrequency);
+    runTest(10000, 2000, prepareSamplingRate, actionSamplingFrequency);
+    runTest(500000, 20000, prepareSamplingRate, actionSamplingFrequency);
 
     return 0;
 }
